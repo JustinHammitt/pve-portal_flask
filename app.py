@@ -101,7 +101,7 @@ def login():
         clean_user = username.split("@")[0]
         user_id = f"{clean_user}@{realm}"
 
-        ticket_data = authenticate_user(user_id, password, proxmox_internal_ip)
+        ticket_data = authenticate_user(user_id, password, PROXMOX_INTERNAL_IP)
 
         if ticket_data:
             session["ticket"] = ticket_data["ticket"]
