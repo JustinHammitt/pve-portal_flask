@@ -1,0 +1,21 @@
+<h2>Welcome {{ session.username }}</h2>
+
+<ul>
+  {% for vm in vms %}
+    <li>
+      {{ vm.name }} ({{ vm.status }})
+
+      {% if vm.status == "running" %}
+        <a target="_blank" href="/console/{{ vm.vmid }}/{{ vm.name }}">
+          Launch Console
+        </a>
+      {% else %}
+        <form action="/poweron/{{ vm.vmid }}" method="POST" style="display:inline">
+          <button type="submit">Power On</button>
+        </form>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
+<a href="/logout">Logout</a>

@@ -1,0 +1,87 @@
+
+<h2>Welcome {{ session.username }}</h2>
+
+<ul>
+  {% for vm in vms %}
+    <li>
+      {{ vm.name }} ({{ vm.status }})
+
+      {% if vm.status == "running" %}
+        <a target="_blank" href="/console/{{ vm.vmid }}/{{ vm.name }}">
+        </a>
+
+      {% if vm.status == "running" %}
+        <form method="POST" action="/get_console_url/{{ vm.vmid }}/{{ vm.name }}">
+          <button type="submit">Generate Console URL</button>
+        </form>
+      {% endif %}
+
+        <form action="/reboot/{{ vm.vmid }}" method="POST" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Reboot</button>
+        </form>
+
+        <form action="/shutdown/{{ vm.vmid }}" method="POST" style="display:inline" data-action="shutdown">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Shutdown</button>
+        </form>
+      {% else %}
+        <form action="/poweron/{{ vm.vmid }}" method="POST" style="display:inline" data-action="poweron">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Power On</button>
+        </form>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
+<a href="/logout">Logout</a>
+
+<script>
+  const ACTION_KEY = "vmRefreshAction";
+  const REFRESH_LIMIT = 5;
+  const DELAY_MS = 120000; // 2 minutes
+
+  // Store which action was submitted (poweron/shutdown)
+  document.querySelectorAll('form[data-action]').forEach(form => {
+    form.addEventListener('submit', () => {
+      const action = form.getAttribute("data-action");
+      localStorage.setItem(ACTION_KEY, JSON.stringify({
+        action: action,
+        count: 0,
+        active: true
+      }));
+    });
+  });
+
+  // Auto-refresh logic
+  window.addEventListener("load", () => {
+    let stored = JSON.parse(localStorage.getItem(ACTION_KEY) || "{}");
+
+    if (!stored.active) return;
+
+    // Simple way to get all current VM statuses
+    let vmStatuses = [...document.querySelectorAll("li")].map(li => li.textContent.toLowerCase());
+    let vmIsOn = vmStatuses.some(text => text.includes("running"));
+    let vmIsOff = vmStatuses.every(text => text.includes("stopped") || text.includes("off"));
+
+    // Stop refreshing if VM transitioned to target state
+    if ((stored.action === "poweron" && vmIsOn) || (stored.action === "shutdown" && vmIsOff)) {
+      localStorage.removeItem(ACTION_KEY);
+      return;
+    }
+
+    if (stored.count >= REFRESH_LIMIT) {
+      localStorage.removeItem(ACTION_KEY);
+      return;
+    }
+
+    // Schedule next refresh
+    stored.count += 1;
+    localStorage.setItem(ACTION_KEY, JSON.stringify(stored));
+
+    setTimeout(() => {
+      window.location.reload();
+    }, DELAY_MS);
+  });
+</script>
