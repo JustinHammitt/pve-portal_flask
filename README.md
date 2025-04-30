@@ -9,7 +9,6 @@ This project is a Flask-based web portal for managing user access to virtual mac
 - Filtered VM access based on user groups
 - Launch noVNC console sessions
 - HTTPS/TLS support
-- Scalable architecture prepared for 600+ VM environments
 
 ## Project Structure
 
