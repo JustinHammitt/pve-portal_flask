@@ -1,6 +1,6 @@
 # Proxmox VDI Portal for CCSE UITS
 
-This project is a Flask-based web portal for managing user access to virtual machines hosted on a Proxmox Virtual Environment (PVE). Built as part of the CS 4850 Senior Capstone at Kennesaw State University, the system enables LDAP-authenticated users to log in, view their assigned VMs, and access them via console through the web.
+This project is a Flask-based web portal that allows users to access virtual machines hosted on a Proxmox Virtual Environment (PVE). Built as part of the CS 4850 Senior Capstone at Kennesaw State University, the system enables LDAP-authenticated users to log in, view their assigned VMs, and access them via console through the web.
 
 ## Features
 
