@@ -179,7 +179,6 @@ def get_console_url(vmid):
 
 
 # allow both /get_console_url/209  and  /get_console_url/209/UbuntuUser
-@app.route("/get_console_url/<int:vmid>", methods=["GET"])
 @app.route("/get_console_url/<int:vmid>/<string:vmname>", methods=["GET"])
 def get_console_url(vmid, vmname=None):
     if "ticket" not in session:
