@@ -163,6 +163,52 @@ def get_console_url(vmid, vmname):
     """
 
 
+@app.route("/shutdown/<vmid>", methods=["POST"])
+def shutdown_vm(vmid):
+    if "ticket" not in session:
+        return redirect("/")
+    headers = {
+        "Cookie": session["cookie"],
+        "CSRFPreventionToken": session["csrf"]
+    }
+    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/shutdown"
+    try:
+        requests.post(url, headers=headers, verify=False).raise_for_status()
+    except Exception as e:
+        app.logger.error(f"shutdown failed for vm {vmid}: {e}")
+    return redirect("/dashboard")
+
+@app.route("/reboot/<vmid>", methods=["POST"])
+def reboot_vm(vmid):
+    if "ticket" not in session:
+        return redirect("/")
+    headers = {
+        "Cookie": session["cookie"],
+        "CSRFPreventionToken": session["csrf"]
+    }
+    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/reboot"
+    try:
+        requests.post(url, headers=headers, verify=False).raise_for_status()
+    except Exception as e:
+        app.logger.error(f"reboot failed for vm {vmid}: {e}")
+    return redirect("/dashboard")
+
+@app.route("/poweron/<vmid>", methods=["POST"])
+def poweron_vm(vmid):
+    if "ticket" not in session:
+        return redirect("/")
+    headers = {
+        "Cookie": session["cookie"],
+        "CSRFPreventionToken": session["csrf"]
+    }
+    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/start"
+    try:
+        requests.post(url, headers=headers, verify=False).raise_for_status()
+    except Exception as e:
+        app.logger.error(f"poweron failed for vm {vmid}: {e}")
+    return redirect("/dashboard")
+
+
 @app.route("/logout")
 def logout():
     session.clear()
