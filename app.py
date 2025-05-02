@@ -42,6 +42,7 @@ def authenticate_user(username, password, proxmox_host):
     except requests.exceptions.RequestException as e:
         print(f"Authentication failed: {e}")
         return None
+    
 
 
 def generate_novnc_url(vm_id, node_name, ticket, csrf_token, proxmox_url, public_ip):
@@ -106,12 +107,21 @@ def login():
         if ticket_data:
             session["ticket"] = ticket_data["ticket"]
             session["csrf"] = ticket_data["CSRFPreventionToken"]
-            session["cookie"] = f"PVEAuthCookie={ticket_data['ticket']}"
             session["user"] = user_id
-            return redirect("/dashboard")
-
+            
+            # build response that sets the PVEAuthCookie for the client
+            resp = make_response(redirect("/dashboard"))
+            resp.set_cookie(
+                "PVEAuthCookie",
+                ticket_data["ticket"],
+                domain=PROXMOX_PUBLIC_IP,   # from config.py
+                secure=IS_PRODUCTION,
+                httponly=True,
+                samesite="Lax"
+            )
+            return resp
         return "Invalid credentials", 403
-
+    
     return render_template("login.html")
 
 
