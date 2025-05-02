@@ -161,28 +161,28 @@ def get_console_url(vmid, vmname):
     <a href="/dashboard">Back to Dashboard</a>
     """
 
-
 @app.route("/console/<int:vmid>")
 def console(vmid):
     if "ticket" not in session:
         return redirect("/")
-    headers = {"Cookie": session["cookie"]}
-    url = (
+    headers = {
+        "Cookie": session["cookie"],
+        "CSRFPreventionToken": session["csrf"]
+    }
+    api_url = (
         f"https://{PROXMOX_INTERNAL_IP}:8006"
         f"/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
     )
-    resp = requests.get(url, headers=headers, verify=False)
+    # changed from get to post
+    resp = requests.post(api_url, headers=headers, verify=False)
     resp.raise_for_status()
     data = resp.json()["data"]
     ticket = data["ticket"]
-    # build the noVNC URL pointing at Proxmox’s built-in novnc page
     console_url = (
         f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
         f"?vmid={vmid}&vncticket={ticket}&resize=remote"
     )
-    return render_template("console.html", console_url=console_url)
-
-
+    return render_template("console.html", console_url=console_url, vmid=vmid)
 
 @app.route("/shutdown/<vmid>", methods=["POST"])
 def shutdown_vm(vmid):
