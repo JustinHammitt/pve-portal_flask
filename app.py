@@ -151,6 +151,22 @@ def get_console_url(vmid, vmname):
         public_ip=PROXMOX_PUBLIC_IP
     )
 
+@app.route("/console/<vmid>")
+def console(vmid):
+    if "ticket" not in session:
+        return redirect("/")
+    headers = {"Cookie": session["cookie"]}
+    # fetch vncproxy info
+    url = f"https://{PROXMOX_PUBLIC_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
+    resp = requests.get(url, headers=headers, verify=False)
+    data = resp.json()["data"]
+    console_url = (
+        f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/?vmid={vmid}"
+        f"&vncticket={data['ticket']}&resize=remote"
+    )
+    return render_template("console.html", console_url=console_url, vmid=vmid)
+
+
 
     if not url:
         return "Failed to generate console URL", 500
