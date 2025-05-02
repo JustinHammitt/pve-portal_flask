@@ -107,21 +107,12 @@ def login():
         if ticket_data:
             session["ticket"] = ticket_data["ticket"]
             session["csrf"] = ticket_data["CSRFPreventionToken"]
+            session["cookie"] = f"PVEAuthCookie={ticket_data['ticket']}"
             session["user"] = user_id
-            
-            # build response that sets the PVEAuthCookie for the client
-            resp = make_response(redirect("/dashboard"))
-            resp.set_cookie(
-                "PVEAuthCookie",
-                ticket_data["ticket"],
-                domain=PROXMOX_PUBLIC_IP,   # from config.py
-                secure=IS_PRODUCTION,
-                httponly=True,
-                samesite="Lax"
-            )
-            return resp
+            return redirect("/dashboard")
+
         return "Invalid credentials", 403
-    
+
     return render_template("login.html")
 
 
@@ -147,6 +138,7 @@ def dashboard():
     except Exception as e:
         return f"Dashboard error: {str(e)}", 500
 
+
 @app.route("/get_console_url/<vmid>/<vmname>", methods=["POST"])
 def get_console_url(vmid, vmname):
     if "ticket" not in session or "csrf" not in session:
@@ -170,81 +162,6 @@ def get_console_url(vmid, vmname):
     <a href="{url}" target="_blank">Launch Console</a><br>
     <a href="/dashboard">Back to Dashboard</a>
     """
-
-@app.route("/console/<int:vmid>")
-def console(vmid):
-    if "ticket" not in session:
-        return redirect("/")
-    headers = {
-        "Cookie": session["cookie"],
-        "CSRFPreventionToken": session["csrf"]
-    }
-    api_url = (
-        f"https://{PROXMOX_INTERNAL_IP}:8006"
-        f"/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
-    )
-    # changed from get to post
-    resp = requests.post(api_url, headers=headers, verify=False)
-    resp.raise_for_status()
-    data = resp.json()["data"]
-    ticket = data["ticket"]
-    console_url = (
-    f"https://{PROXMOX_PUBLIC_IP}:8006/"
-    f"?console=kvm"
-    f"&novnc=1"
-    f"&vmid={vmid}"
-    f"&node={PVE_NODE}"
-    f"&resize=scale"
-    f"&cmd=start"
-    f"&password={ticket}"
-)
-
-    return render_template("console.html", console_url=console_url, vmid=vmid)
-
-@app.route("/shutdown/<vmid>", methods=["POST"])
-def shutdown_vm(vmid):
-    if "ticket" not in session:
-        return redirect("/")
-    headers = {
-        "Cookie": session["cookie"],
-        "CSRFPreventionToken": session["csrf"]
-    }
-    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/shutdown"
-    try:
-        requests.post(url, headers=headers, verify=False).raise_for_status()
-    except Exception as e:
-        app.logger.error(f"shutdown failed for vm {vmid}: {e}")
-    return redirect("/dashboard")
-
-@app.route("/reboot/<vmid>", methods=["POST"])
-def reboot_vm(vmid):
-    if "ticket" not in session:
-        return redirect("/")
-    headers = {
-        "Cookie": session["cookie"],
-        "CSRFPreventionToken": session["csrf"]
-    }
-    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/reboot"
-    try:
-        requests.post(url, headers=headers, verify=False).raise_for_status()
-    except Exception as e:
-        app.logger.error(f"reboot failed for vm {vmid}: {e}")
-    return redirect("/dashboard")
-
-@app.route("/poweron/<vmid>", methods=["POST"])
-def poweron_vm(vmid):
-    if "ticket" not in session:
-        return redirect("/")
-    headers = {
-        "Cookie": session["cookie"],
-        "CSRFPreventionToken": session["csrf"]
-    }
-    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/status/start"
-    try:
-        requests.post(url, headers=headers, verify=False).raise_for_status()
-    except Exception as e:
-        app.logger.error(f"poweron failed for vm {vmid}: {e}")
-    return redirect("/dashboard")
 
 
 @app.route("/logout")
