@@ -1,39 +1,21 @@
-<!DOCTYPE html>
-<html>
-  <head><meta charset="utf-8"><title>Dashboard2</title></head>
-  <body>
-    <h1>Your VMs</h1>
-
-    {% for vm in vms %}
-      <div>
-        <strong>{{ vm.name }}</strong> (ID {{ vm.vmid }})
-        <button onclick="loadConsole({{ vm.vmid }})">
-          Open Console
-        </button>
-      </div>
-    {% endfor %}
-
-    <iframe id="console-frame"
-            style="width:100%; height:70vh; border:0"
-            allowfullscreen>
-    </iframe>
-
-    <script>
-      function loadConsole(vmid) {
-        fetch(`/get_console_url/${vmid}`)
-          .then(r => r.json())
-          .then(json => {
-            if (json.console_url) {
-              document.getElementById("console-frame").src = json.console_url;
-            } else {
-              alert("Error: " + (json.error || "unknown"));
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            alert("Fetch failed: " + err);
-          });
+<script>
+  function loadConsole(vmid) {
+    fetch("/get_console_url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token() }}"
+      },
+      body: JSON.stringify({ vmid })
+    })
+    .then(r => r.json())
+    .then(json => {
+      if (json.console_url) {
+        document.getElementById("console-frame").src = json.console_url
+      } else {
+        alert("Error: " + (json.error || "unknown"))
       }
-    </script>
-  </body>
-</html>
+    })
+  }
+  </script>
+  

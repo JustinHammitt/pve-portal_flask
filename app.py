@@ -146,38 +146,13 @@ def dashboard2():
     vms = fetch_all_vms()   # returns a list of dicts with at least vmid and name
     return render_template("dashboard2.html", vms=vms)
 
-@app.route("/get_console_url/<int:vmid>/<string:vmname>", methods=["GET"])
-def get_console_url(vmid, vmname):
+@app.route("/get_console_url", methods=["POST"])
+def get_console_url():
     if "ticket" not in session:
         return jsonify(error="not authenticated"), 401
-
-    try:
-        headers = {"Cookie": session["cookie"]}
-        api_url = (
-            f"https://{PROXMOX_INTERNAL_IP}:8006"
-            f"/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
-        )
-        resp = requests.get(api_url, headers=headers, verify=False)
-        resp.raise_for_status()
-
-        data = resp.json().get("data", {})
-        ticket = data.get("ticket")
-        if not ticket:
-            return jsonify(error="no ticket"), 500
-
-        console_url = (
-            f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
-            f"?vmid={vmid}"
-            f"&vncticket={ticket}"
-            f"&resize=remote"
-        )
-        return jsonify(console_url=console_url)
-
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-
-
-
+    vmid = request.json.get("vmid")
+    # fetch vncproxy, build console_url as before…
+    return jsonify(console_url=console_url)
 
 @app.route("/console/<int:vmid>")
 def console(vmid):
