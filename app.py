@@ -137,34 +137,19 @@ def dashboard():
     except Exception as e:
         return f"Dashboard error: {str(e)}", 500
 
-@app.route("/dashboard2")
-def dashboard2():
-    if "ticket" not in session:
+
+@app.route("/get_console_url/<vmid>/<vmname>", methods=["POST"])
+def get_console_url(vmid, vmname):
+    if "ticket" not in session or "csrf" not in session:
         return redirect("/")
-
-    # assume you already load your VM info somewhere, e.g.:
-    vms = fetch_all_vms()   # returns a list of dicts with at least vmid and name
-    return render_template("dashboard2.html", vms=vms)
-
-@app.route("/get_console_url/<int:vmid>", methods=["GET"])
-def get_console_url(vmid):
-    if "ticket" not in session:
-        return jsonify(error="not authenticated"), 401
-
-    headers = {"Cookie": session["cookie"]}
-    url = f"https://{PROXMOX_INTERNAL_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
-    resp = requests.get(url, headers=headers, verify=False)
-    resp.raise_for_status()
-
-    data = resp.json()["data"]
-    console_url = (
-        f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
-        f"?vmid={vmid}"
-        f"&vncticket={data['ticket']}"
-        f"&resize=remote"
+    url = generate_novnc_url(
+        vm_id=vmid,
+        node_name=PVE_NODE,
+        ticket=session["ticket"],
+        csrf_token=session["csrf"],
+        proxmox_url=PVE_API,
+        public_ip=PROXMOX_PUBLIC_IP
     )
-    return jsonify(console_url=console_url)
-
 
 @app.route("/console/<int:vmid>")
 def console(vmid):

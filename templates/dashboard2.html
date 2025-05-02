@@ -1,36 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Dashboard2</title></head>
-<body>
-  <h1>Your VMs</h1>
+<h2>Welcome {{ session.username }}</h2>
 
+<ul>
   {% for vm in vms %}
-    <div style="margin-bottom:1em">
-      <strong>{{ vm.name }}</strong> (ID {{ vm.vmid }})
-      <button onclick="loadConsole({{ vm.vmid }})">
-        Open Console
-      </button>
-    </div>
+    <li>
+      {{ vm.name }} ({{ vm.status }})
+
+      {% if vm.status == "running" %}
+        <a target="_blank" href="/console/{{ vm.vmid }}/{{ vm.name }}">
+          Launch Console
+        </a>
+      {% else %}
+        <form action="/poweron/{{ vm.vmid }}" method="POST" style="display:inline">
+          <button type="submit">Power On</button>
+        </form>
+      {% endif %}
+    </li>
   {% endfor %}
+</ul>
 
-  <iframe id="console-frame"
-          style="width:100%; height:70vh; border:0"
-          allowfullscreen>
-  </iframe>
-
-  <script>
-    function loadConsole(vmid) {
-      fetch(`/get_console_url/${vmid}`)
-        .then(res => res.json())
-        .then(json => {
-          if (json.console_url) {
-            document.getElementById("console-frame").src = json.console_url;
-          } else {
-            alert("Error fetching console URL");
-          }
-        })
-        .catch(err => console.error(err));
-    }
-  </script>
-</body>
-</html>
+<a href="/logout">Logout</a>
