@@ -147,7 +147,7 @@ def dashboard2():
     return render_template("dashboard2.html", vms=vms)
 
 @app.route("/get_console_url/<int:vmid>/<string:vmname>", methods=["GET"])
-def get_console_url(vmid):
+def get_console_url(vmid, vmname):
     if "ticket" not in session:
         return jsonify(error="not authenticated"), 401
 
@@ -163,7 +163,7 @@ def get_console_url(vmid):
         data = resp.json().get("data", {})
         ticket = data.get("ticket")
         if not ticket:
-            return jsonify(error="no ticket in response"), 500
+            return jsonify(error="no ticket"), 500
 
         console_url = (
             f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
@@ -175,6 +175,7 @@ def get_console_url(vmid):
 
     except Exception as e:
         return jsonify(error=str(e)), 500
+
 
 
 
