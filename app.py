@@ -151,32 +151,26 @@ def get_console_url(vmid, vmname):
         public_ip=PROXMOX_PUBLIC_IP
     )
 
-@app.route("/console/<vmid>")
+@app.route("/console/<int:vmid>")
 def console(vmid):
     if "ticket" not in session:
         return redirect("/")
     headers = {"Cookie": session["cookie"]}
-    # fetch vncproxy info
-    url = f"https://{PROXMOX_PUBLIC_IP}:8006/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
-    resp = requests.get(url, headers=headers, verify=False)
-    data = resp.json()["data"]
-    console_url = (
-        f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/?vmid={vmid}"
-        f"&vncticket={data['ticket']}&resize=remote"
+    url = (
+        f"https://{PROXMOX_INTERNAL_IP}:8006"
+        f"/api2/json/nodes/{PVE_NODE}/qemu/{vmid}/vncproxy"
     )
-    return render_template("console.html", console_url=console_url, vmid=vmid)
+    resp = requests.get(url, headers=headers, verify=False)
+    resp.raise_for_status()
+    data = resp.json()["data"]
+    ticket = data["ticket"]
+    # build the noVNC URL pointing at Proxmox’s built-in novnc page
+    console_url = (
+        f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
+        f"?vmid={vmid}&vncticket={ticket}&resize=remote"
+    )
+    return render_template("console.html", console_url=console_url)
 
-
-
-    if not url:
-        return "Failed to generate console URL", 500
-
-    return f"""
-    <h2>Copy and paste this full console URL into your browser:</h2>
-    <textarea style='width:100%;height:80px'>{url}</textarea><br>
-    <a href="{url}" target="_blank">Launch Console</a><br>
-    <a href="/dashboard">Back to Dashboard</a>
-    """
 
 
 @app.route("/shutdown/<vmid>", methods=["POST"])

@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>VM {{ vmid }} Console</title>
+    <meta charset="utf-8">
+    <title>VM Console</title>
   </head>
   <body>
-    <h1>Console for VM {{ vmid }}</h1>
     <iframe
-      src="{{ console_url }}"
+      src="{{ console_url|safe }}"
       style="width:100%; height:80vh; border:0"
-      allowfullscreen
-    ></iframe>
+      allowfullscreen>
+    </iframe>
   </body>
 </html>
