@@ -137,15 +137,6 @@ def dashboard():
     except Exception as e:
         return f"Dashboard error: {str(e)}", 500
 
-@app.route("/dashboard2")
-def dashboard2():
-    if "ticket" not in session:
-        return redirect("/")
-
-    # assume you already load your VM info somewhere, e.g.:
-    vms = fetch_all_vms()   # returns a list of dicts with at least vmid and name
-    return render_template("dashboard2.html", vms=vms)
-
 @app.route("/get_console_url/<vmid>/<vmname>", methods=["POST"])
 def get_console_url(vmid, vmname):
     if "ticket" not in session or "csrf" not in session:
