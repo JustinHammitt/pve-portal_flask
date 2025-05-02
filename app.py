@@ -179,9 +179,17 @@ def console(vmid):
     data = resp.json()["data"]
     ticket = data["ticket"]
     console_url = (
-        f"https://{PROXMOX_PUBLIC_IP}:8006/novnc/"
-        f"?vmid={vmid}&vncticket={ticket}&resize=remote"
-    )
+    f"https://{PROXMOX_PUBLIC_IP}:8006/"
+    f"?console=kvm"
+    f"&novnc=1"
+    f"&vmid={vmid}"
+    f"&vmname={vmname}"
+    f"&node={PVE_NODE}"
+    f"&resize=scale"
+    f"&cmd=start"
+    f"&password={ticket}"
+)
+
     return render_template("console.html", console_url=console_url, vmid=vmid)
 
 @app.route("/shutdown/<vmid>", methods=["POST"])
