@@ -25,6 +25,10 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button type="submit">Shutdown</button>
         </form>
+
+        <form action="{{ url_for('console', vmid=vm.vmid) }}" method="get">
+          <button type="submit">Console</button>
+        </form>
       {% else %}
         <form action="/poweron/{{ vm.vmid }}" method="POST" style="display:inline" data-action="poweron">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
