@@ -183,7 +183,6 @@ def console(vmid):
     f"?console=kvm"
     f"&novnc=1"
     f"&vmid={vmid}"
-    f"&vmname={vmname}"
     f"&node={PVE_NODE}"
     f"&resize=scale"
     f"&cmd=start"
