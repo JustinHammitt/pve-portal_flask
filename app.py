@@ -146,13 +146,30 @@ def dashboard2():
     vms = fetch_all_vms()   # returns a list of dicts with at least vmid and name
     return render_template("dashboard2.html", vms=vms)
 
-@app.route("/get_console_url", methods=["POST"])
-def get_console_url():
-    if "ticket" not in session:
-        return jsonify(error="not authenticated"), 401
-    vmid = request.json.get("vmid")
-    # fetch vncproxy, build console_url as before…
-    return jsonify(console_url=console_url)
+@app.route("/get_console_url/<vmid>/<vmname>", methods=["POST"])
+def get_console_url(vmid, vmname):
+    if "ticket" not in session or "csrf" not in session:
+        return redirect("/")
+    url = generate_novnc_url(
+        vm_id=vmid,
+        node_name=PVE_NODE,
+        ticket=session["ticket"],
+        csrf_token=session["csrf"],
+        proxmox_url=PVE_API,
+        public_ip=PROXMOX_PUBLIC_IP
+    )
+
+
+    if not url:
+        return "Failed to generate console URL", 500
+
+    return f"""
+    <h2>Copy and paste this full console URL into your browser:</h2>
+    <textarea style='width:100%;height:80px'>{url}</textarea><br>
+    <a href="{url}" target="_blank">Launch Console</a><br>
+    <a href="/dashboard">Back to Dashboard</a>
+    """
+
 
 @app.route("/console/<int:vmid>")
 def console(vmid):
