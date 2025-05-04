@@ -1,3 +1,25 @@
+/* header bar: light grey background, logo left, links right */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #e0e0e0;
+}
+.navbar .logo {
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.nav-links a {
+  color: #333;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+.nav-links {
+  display: flex;
+  list-style: none;
+}
 
 /*<!-- File: assets/css/styles.css --> */
 /* Basic Reset */
