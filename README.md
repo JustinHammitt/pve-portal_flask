@@ -25,7 +25,7 @@ This project is a Flask-based web portal that allows users to access virtual mac
 - LDAP server (slapd or Active Directory)
 
 
-##Setup
+## Setup
 1. Clone the repo
 2. pip instal flask requests
 3. config.py setup
